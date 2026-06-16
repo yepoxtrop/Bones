@@ -20,4 +20,16 @@ def configuration_windows():
 
             if not os.path.exists(addres_file_env):
                 with open(addres_file_env,"a", encoding="utf-8") as env_file:
-                    pass
+                    env_file.write("FIRST_NAME = NONE");
+                    env_file.write("SECOND_NAME = NONE");
+                    env_file.write("LAST_NAME = NONE");
+            else:
+                archivo_contenido = '';
+                with open(addres_file_env, "r", encoding="utf-8") as env_file:
+                    archivo_contenido = env_file.read();
+
+                if archivo_contenido == "" :
+                    with open(addres_file_env, "a", encoding="utf-8") as env_file:
+                        env_file.write("FIRST_NAME = NONE");
+                        env_file.write("SECOND_NAME = NONE");
+                        env_file.write("LAST_NAME = NONE");
