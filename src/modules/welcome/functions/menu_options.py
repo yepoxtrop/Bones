@@ -15,4 +15,4 @@ def menu_options_principal():
     print("|              BONES                 |");
     print("**************************************");
     print("\nWelcome to the menu options program:");
-    print("1. Complete forms");
+    print("1. Update System Apps");
