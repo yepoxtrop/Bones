@@ -1,8 +1,5 @@
-from src.tasks.classes.logs.logs import log;
+from src.tasks.classes.logs.log_writer import LogWriter;
 
-def logger(log_object:log)->bool:
-    try:
-        
-        return True;
-    except:
-        return False;
+# -> Funcion que devuelve un objeto logwriter
+def create_logger()->LogWriter:
+    return LogWriter();

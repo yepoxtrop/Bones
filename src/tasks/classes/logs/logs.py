@@ -1,5 +1,4 @@
 from datetime import datetime;
-
 class Log():
     
     # -> Atr de la clase para el id de los logs
@@ -12,7 +11,7 @@ class Log():
     # -> Atr `status` - Estado boleano para el tipo de log
     # -> Atr `path_file` - Ubicacion del log
     # -> Atr `error_code` - Codigo de error opcional si el log es de error
-    def __init__(self, title:str, date:datetime, message:str, status:bool, path_file:str, error_code:str|None):
+    def __init__(self, title:str, date:datetime, message:str, status:bool, path_file:str, error_code:str|None=None):
         self._id = Log._id_log + 1;
         Log._id_log += 1;
         self._title = title;
@@ -34,7 +33,7 @@ class Log():
     
     # -> Set title
     @title.setter
-    def tile(self, new_title:str):
+    def title(self, new_title:str):
         self._title = new_title;
         
     # -> Get date
@@ -83,9 +82,18 @@ class Log():
         return self._error_code;
     
     # -> Set error_code
-    @path_file.setter
+    @error_code.setter
     def error_code(self, new_error_code:str|None):
         self._error_code = new_error_code;
     
+    # -> Sobreescritura del metodo _str_
     def __str__(self)->str:
-        return 
+        text_log = "";
+        text_log += f"[{self.date}]  [FILE_TYPE]   Log File\n";
+        if self.status:
+                text_log += f"[{self.date}]  [SUCCES]      Process completed Successfully\n";
+        else:
+            text_log += f"[{self.date}]  [ERROR_CODE]  {self.error_code}\n";
+            text_log += f"[{self.date}]  [ERROR]       Process Failure\n";
+        text_log += f"[{self.date}]  [MESSAGE]     {self.message}\n";
+        return text_log;
