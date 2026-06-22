@@ -29,7 +29,7 @@ Bones/
 ```
 
 ### Functions
-- [ ] Update applications in the system
+- [ ] Update operative systema
     - [ ] Windows
     - [ ] Linux
 
@@ -37,5 +37,10 @@ Bones/
 - [ ] Program tasks to run this app in diferents computers under a network or domains
 
 ### TODO
+- [X] Create a basic structure for the app
+- [X] Create a basic script to start the application
+- [X] Create a folder for source code and organize it in modules, classes and functions
+- [X] Create logs classes to handle logs in the application
+- [ ] Create a configuration script and define environment variables
 - [ ] Create the app XD
 - [ ] Create a GUI for the app
