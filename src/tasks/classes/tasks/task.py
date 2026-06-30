@@ -1,9 +1,13 @@
-from datetime import datetime
+from abc import ABC, abstractmethod;
+from datetime import datetime;
 from typing import List;
+import subprocess;
+import os;
 from src.tasks.classes.tasks.models.task_execution_mode import TaskExecutionMode;
 from src.tasks.classes.tasks.models.task_status import TaskStatus;
+from src.tasks.classes.tasks.models.task_activity import TaskActivity;
 
-class task():
+class Task(ABC):
     
     # -> Metodo constructor
     # -> Atr `title` - Titulo de la tarea
@@ -16,9 +20,10 @@ class task():
     # -> Atr `date_execution` - Fecha de ejecucion de la tarea
     # -> Atr `date_repeat` - Fechas de repeticion opcional de la tarea
     # -> Atr `result` - Resultado opcional de la tarea
-    def __init__(self, title:str, description:str, progress:int, status:TaskStatus, is_active:bool, execution_mode:TaskExecutionMode, date_creation:datetime, date_execution:datetime, date_repeat:List[datetime]|None=None, result:str|None=None):
+    def __init__(self, title:str, description:str, actvity:List[TaskActivity], progress:int, status:TaskStatus, is_active:bool, execution_mode:TaskExecutionMode, date_creation:datetime, date_execution:datetime, date_repeat:List[datetime]|None=None, result:str|None=None):
         self._title = title;
         self._description = description;
+        self._activity = actvity;
         self._progress = progress;
         self._status = status;
         self._is_active = is_active;
@@ -47,6 +52,16 @@ class task():
     @description.setter
     def description(self, new_description:str):
         self._description = new_description;
+    
+    # -> Get activity
+    @property
+    def activity(self)->TaskActivity:
+        return self._activity;
+    
+    # -> Set activity
+    @activity.setter
+    def activity(self, new_activity:TaskActivity):
+        self._activity = new_activity;
     
     # -> Get progress
     @property
@@ -127,3 +142,50 @@ class task():
     @result.setter
     def result(self, new_result:str|None):
         self._result = new_result;
+    
+    # -> Meotod abstrcto de ejecucion de la tarea    
+    @abstractmethod
+    def execute():
+        pass;
+    
+    # -> Metodo para validar si es posible ejecutar la tarea
+    # -> Verifica que el aplicativo se este ejecutando con 
+    #    derechos de administrador o sudo.
+    def validate_exec():
+        
+        # -> Validar los permisos que tiene el archivo
+        
+        pass;
+    
+    # -> Metodo para actualizar el progreso de la tarea
+    def update_progress(new_value:int):
+        pass;
+    
+    # -> 
+    def is_ready_to_execute():
+        pass;
+    
+    # ->
+    def mark_as_completed():
+        pass;
+    
+    # ->
+    def mark_as_failed(error: str):
+        pass;
+    
+    # ->
+    def create_log(message: str, status: bool):
+        pass;
+    
+    # ->    
+    def log_result(result: str):
+        pass;
+    
+    # ->    
+    def should_execute_now():
+        pass;
+    
+    # ->    
+    def get_next_execution():
+        pass;
+            
