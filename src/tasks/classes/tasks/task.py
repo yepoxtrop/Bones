@@ -1,11 +1,18 @@
+# -> libraries
+import requests;
+
+# -> modules
 from abc import ABC, abstractmethod;
 from datetime import datetime;
 from typing import List;
 import subprocess;
 import os;
+
+# -> models
 from src.tasks.classes.tasks.models.task_execution_mode import TaskExecutionMode;
 from src.tasks.classes.tasks.models.task_status import TaskStatus;
 from src.tasks.classes.tasks.models.task_activity import TaskActivity;
+from src.tasks.classes.tasks.models.task_os import TaskOs;
 
 class Task(ABC):
     
@@ -150,12 +157,49 @@ class Task(ABC):
     
     # -> Metodo para validar si es posible ejecutar la tarea
     # -> Verifica que el aplicativo se este ejecutando con 
-    #    derechos de administrador o sudo.
-    def validate_exec():
+    #    derechos de administrador o root.
+    # -> Conectividad de red
+    # -> Permisos locales (admin/root)
+    # -> Permisos de red (lectura/escritura)
+    # -> Permisos de comandos específicos
+    def validate_exec(self)->bool:
         
         # -> Validar los permisos que tiene el archivo
         
         pass;
+    
+    # -> Metodo para validar la conexion a internet del equipo cliente
+    def validate_network(self)->bool:
+        try:
+            request = requests.get(url="https://1.1.1.1", auth=('user', 'pass'), timeout=5);
+            if request.status_code == 200:
+                return True;
+            else:
+                print("Problems with the network");
+                return False;
+        except requests.exceptions.ConnectionError:
+            print("Connection failured");
+            return False;
+        except requests.exceptions.ConnectTimeout:
+            print("Connection timeout");
+            return False;
+        except Exception as error:
+            print("Unexpected error.");
+            return False;
+        
+    def validate_user_permissions():
+        try:
+            if os.name == 'nt':
+                with open(TaskOs.WINDOWS_FILE_TEST, "w") as file:
+                    pass;
+            elif os.name == 'posix':
+                pass
+            info = os.stat(os.getcwd());
+            print(info)
+        except Exception as error:
+            print("Unexpected error.");
+            return False;
+        
     
     # -> Metodo para actualizar el progreso de la tarea
     def update_progress(new_value:int):
