@@ -1,19 +1,21 @@
 # -> libraries
 import requests;
-import ctypes;
+import shutil;
 
 # -> modules
 from abc import ABC, abstractmethod;
 from datetime import datetime;
 from typing import List;
-import subprocess;
 import os;
 
+from src.tasks.classes.tasks.models import task_execution_mode
 # -> models
 from src.tasks.classes.tasks.models.task_execution_mode import TaskExecutionMode;
 from src.tasks.classes.tasks.models.task_status import TaskStatus;
 from src.tasks.classes.tasks.models.task_activity import TaskActivity;
 from src.tasks.classes.tasks.models.task_os import TaskOs;
+from src.tasks.classes.tasks.models.task_windows_commands import TaskWindowsCommands;
+from src.tasks.classes.tasks.models.task_linux_commands import TaskLinuxCommands;
 
 # -> utils
 from src.utils.define_os import define_os;
@@ -31,10 +33,23 @@ class Task(ABC):
     # -> Atr `date_execution` - Fecha de ejecucion de la tarea
     # -> Atr `date_repeat` - Fechas de repeticion opcional de la tarea
     # -> Atr `result` - Resultado opcional de la tarea
-    def __init__(self, title:str, description:str, actvity:List[TaskActivity], progress:int, status:TaskStatus, is_active:bool, execution_mode:TaskExecutionMode, date_creation:datetime, date_execution:datetime, date_repeat:List[datetime]|None=None, result:str|None=None):
+    def __init__(
+        self,
+        title:str,
+        description:str,
+        activity:List[TaskActivity],
+        execution_mode:TaskExecutionMode,
+        date_creation:datetime,
+        date_execution:datetime,
+        is_active:bool=True,
+        progress:int=0,
+        status:TaskStatus=TaskStatus.PENDING,
+        date_repeat:List[datetime]|None=None,
+        result:str|None=None,
+    ):
         self._title = title;
         self._description = description;
-        self._activity = actvity;
+        self._activity = activity;
         self._progress = progress;
         self._status = status;
         self._is_active = is_active;
@@ -66,12 +81,12 @@ class Task(ABC):
     
     # -> Get activity
     @property
-    def activity(self)->TaskActivity:
+    def activity(self)->List[TaskActivity]:
         return self._activity;
     
     # -> Set activity
     @activity.setter
-    def activity(self, new_activity:TaskActivity):
+    def activity(self, new_activity:List[TaskActivity]):
         self._activity = new_activity;
     
     # -> Get progress
@@ -156,34 +171,26 @@ class Task(ABC):
     
     # -> Meotod abstrcto de ejecucion de la tarea    
     @abstractmethod
-    def execute():
+    def execute(self):
         pass;
     
     # -> Metodo para validar si es posible ejecutar la tarea
-    # -> Verifica que el aplicativo se este ejecutando con 
-    #    derechos de administrador o root.
-    # -> Conectividad de red
+    # -> Verofica la conectividad de red
     # -> Permisos locales (admin/root)
-    # -> Permisos de red (lectura/escritura)
-    # -> Permisos de comandos específicos
+    # -> Existencia de comandos específicos
     def validate_exec(self)->bool:
-        
         # -> Validar el tipo de os para la tarea
         operative_system = define_os();
-        
         check_validate_task = self.is_ready_to_execute(operative_system=operative_system);
-        
-        pass;
+        return  check_validate_task;
     
-    # -> 
-    def is_ready_to_execute(self, operative_system=TaskOs) -> bool:
-        netowrk = self.validate_network();
+    # -> Metodo para validar si la tarea es posible de ejecutarse
+    def is_ready_to_execute(self, operative_system:TaskOs) -> bool:
+        network = self.validate_network();
         permissions = self.validate_user_permissions(type_os=operative_system);
-        
-        if netowrk == True and permissions == True:
-            return True;
-        else: 
-            return False;
+        commands = self.validate_sys_commands(type_os=operative_system);
+
+        return network and permissions and commands[0];
     
     # -> Metodo para validar la conexion a internet del equipo cliente
     def validate_network(self)->bool:
@@ -204,9 +211,11 @@ class Task(ABC):
             print("Unexpected error.");
             return False;
         
+    # -> Metodo para validar los permisos de admin/root en el os
     def validate_user_permissions(self, type_os:TaskOs)->bool:
         try:
             if type_os == TaskOs.WINDOWS:
+                import ctypes
                 if ctypes.windll.shell32.IsUserAnAdmin():
                     return True;
                 else:
@@ -216,37 +225,70 @@ class Task(ABC):
                     return True;
                 else:
                     return False;
+            elif type_os == TaskOs.MACOS:
+                raise NotImplementedError(f"Mac os no implementado aun");
+            else:
+                raise TypeError(f"Sistema operativo no encontrado");
         except Exception as error:
             print("Unexpected error.");
             return False;
-    
+
+    # -> Metodo para validad la existencia de comandos
+    def validate_sys_commands(self, type_os:TaskOs) ->tuple:
+        list_missing_commands = [];
+
+        try:
+            if type_os == TaskOs.WINDOWS:
+                for command in TaskWindowsCommands:
+                    if shutil.which(command.value) is None:
+                        list_missing_commands.append(command.value);
+            elif type_os == TaskOs.LINUX:
+                for command in TaskLinuxCommands:
+                    if shutil.which(command.value) is None:
+                        list_missing_commands.append(command.value);
+            elif type_os == TaskOs.MACOS:
+                pass
+            else:
+                raise TypeError(f"Sistema operativo no encontrado");
+
+            return len(list_missing_commands) == 0, list_missing_commands;
+        except Exception as error:
+            print("Unexpected error.");
+            return False;
+
+    @abstractmethod
+    def validate_network_components(self):
+        pass;
+
     # -> Metodo para actualizar el progreso de la tarea
-    def update_progress(new_value:int):
+    @abstractmethod
+    def update_progress(self, new_value:int):
         pass;
     
+    # -> Metodo que marca como completada la tarea
+    def mark_as_completed(self):
+        self.status = TaskStatus.COMPLETED;
     
+    # -> Metodo que marca como fallada la tarea
+    def mark_as_failed(self, error: str):
+        self.status = TaskStatus.FAILED;
     
     # ->
-    def mark_as_completed():
+    @abstractmethod
+    def create_log(self, message: str, status: bool):
         pass;
     
     # ->
-    def mark_as_failed(error: str):
-        pass;
-    
-    # ->
-    def create_log(message: str, status: bool):
+    @abstractmethod
+    def log_result(self, result: str):
         pass;
     
     # ->    
-    def log_result(result: str):
+    @abstractmethod
+    def should_execute_now(self):
         pass;
     
-    # ->    
-    def should_execute_now():
+    # ->
+    @abstractmethod
+    def get_next_execution(self):
         pass;
-    
-    # ->    
-    def get_next_execution():
-        pass;
-            
