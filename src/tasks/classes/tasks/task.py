@@ -169,7 +169,7 @@ class Task(ABC):
     def result(self, new_result:str|None):
         self._result = new_result;
     
-    # -> Meotod abstrcto de ejecucion de la tarea    
+    # -> Meotod abstracto de ejecucion de la tarea
     @abstractmethod
     def execute(self):
         pass;

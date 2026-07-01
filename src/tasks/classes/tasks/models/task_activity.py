@@ -10,9 +10,7 @@ class TaskActivity(Enum):
         ((
             TaskWindowsCommands.WINGET
          ),(
-            TaskLinuxCommands.APT,
-            TaskLinuxCommands.GET,
-            TaskLinuxCommands.UPDATE,
+            TaskLinuxCommands.APT
         )),
         ""
     );
